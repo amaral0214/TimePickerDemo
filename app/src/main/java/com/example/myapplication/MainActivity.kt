@@ -29,5 +29,8 @@ class MainActivity : AppCompatActivity() {
 //        numberPicker.displayedValues = arrayOf("00","15","30","45","60")
 
         wheelStyleTimePicker.initView(14 to 30, 16 to 0, 3 to 30)
+
+        picker.setMax(20)
+        picker.setMin(1)
     }
 }
