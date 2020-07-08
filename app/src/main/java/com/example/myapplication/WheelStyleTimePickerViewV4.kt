@@ -152,6 +152,7 @@ class WheelStyleTimePickerViewV4 @JvmOverloads constructor(
                         ) {
                             mMinuteSpinner.cancelFuture()
                             setCurrentMinute(date.second)
+                            onTimeChanged(date)
                         }
                         if (flag) {
                             updateAmPm()
