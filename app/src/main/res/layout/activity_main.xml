@@ -36,4 +36,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
+    <com.super_rabbit.wheel_picker.WheelPicker
+        android:id="@+id/picker"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:descendantFocusability="blocksDescendants"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        app:wheelItemCount="5"
+        app:fadingEdgeEnabled="true"
+        app:wrapSelectorWheel="true" />
+
 </LinearLayout>

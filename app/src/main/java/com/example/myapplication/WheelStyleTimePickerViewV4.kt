@@ -49,8 +49,6 @@ class WheelStyleTimePickerViewV4 @JvmOverloads constructor(
         }
 
     private var mIs24Hour: Boolean = false
-    private var oldHourVal: Int = 0
-    private var oldMinuteVal: Int = 0
 
     private val dayAdapter = CustomWheelAdapterV4(displayedDays)
     private val hourAdapter = CustomWheelAdapterV4(emptyList<Int>())
@@ -69,58 +67,107 @@ class WheelStyleTimePickerViewV4 @JvmOverloads constructor(
 
         // hour
         mHourSpinner.setOnItemSelectedListener {
-            Log.d("byq","mHourSpinner.setOnItemSelectedListener")
-            var currentTime = getDate()
-            if (currentTime < minTime || currentTime > maxTime) {
-                // Sliding wheel may cause time out of range, so handle it.
-                currentTime = if (isClockwiseMoved(lastTime, currentTime)) {
-                    minTime
-                } else {
-                    maxTime
-                }
-                setCurrentHour(currentTime.first)
-            }
-            setCurrentMinute(currentTime.second)
+            Log.d("byq", "mHourSpinner.setOnItemSelectedListener")
+            val date = getDate()
+            setCurrentMinute(date.second)
             updateAmPm()
-            onTimeChanged()
+            onTimeChanged(date)
         }
 
         mHourSpinner.onWheelScrolledListener = object : CustomWheelViewV4.OnWheelScrolledListener {
             override fun onWheelScrolled(oldVal: Int, newVal: Int, dy: Float) {
                 Log.d("byq", "$oldVal $newVal")
-                val index = hourAdapter.indexOf(HOURS_IN_HALF_DAY)
+                var flag = false
                 if (!mIs24Hour) {
-                    if (dy > 0 && (index in (oldVal + 1)..newVal || newVal < oldVal && index !in (newVal + 1)..oldVal)
-                        || dy < 0 && (index in (newVal + 1)..oldVal || oldVal < newVal && index !in (oldVal + 1)..newVal)) {
+                    val index1 = hourAdapter.indexOf(HOURS_IN_HALF_DAY - 1)
+                    val index2 = hourAdapter.indexOf(HOURS_IN_HALF_DAY)
+                    if (dy > 0 && oldVal == index1 && newVal == index2 || dy < 0 && oldVal == index2 && oldVal == index1) {
+                        // cross through noon/midnight
                         mIsAm = !mIsAm
-                        updateAmPm()
+                        flag = true
                     }
+                }
+                var date = getDate()
+                if (date < minTime || date > maxTime) {
+                    // Sliding wheel may cause time out of range, so handle it.
+                    mHourSpinner.cancelFuture()
+                    date = if (dy > 0) minTime else maxTime
+                    setCurrentHour(date.first, false)
+                    setCurrentMinute(date.second)
+                    onTimeChanged(date)
+                    flag = true
+                }
+                if (flag) {
+                    updateAmPm()
                 }
             }
         }
 
         // minute
         mMinuteSpinner.setOnItemSelectedListener {
-            Log.d("byq","mMinuteSpinner.setOnItemSelectedListener")
+            Log.d("byq", "mMinuteSpinner.setOnItemSelectedListener")
             updateAmPm()
-            onTimeChanged()
+            onTimeChanged(getDate())
         }
 
-        mMinuteSpinner.onWheelScrolledListener =
-            object : CustomWheelViewV4.OnWheelScrolledListener {
-                override fun onWheelScrolled(oldVal: Int, newVal: Int, dy: Float) {
-                    if (mMinuteSpinner.isLoop) {
-
+        mMinuteSpinner.onWheelScrolledListener = object : CustomWheelViewV4.OnWheelScrolledListener {
+            override fun onWheelScrolled(oldVal: Int, newVal: Int, dy: Float) {
+                if (mMinuteSpinner.isLoop) {
+                    val oldHourIndex: Int
+                    var newHourIndex = -1
+                    var flag = false
+                    if (dy > 0 && newVal == 0 && oldVal == minuteAdapter.itemsCount - 1) {
+                        // cross the border clockwise
+                        oldHourIndex = mHourSpinner.currentItem
+                        newHourIndex = (oldHourIndex + 1) % hourAdapter.itemsCount
+                        mHourSpinner.currentItem = newHourIndex
+                        if (!mIs24Hour && oldHourIndex == hourAdapter.indexOf(HOURS_IN_HALF_DAY - 1) && newHourIndex == hourAdapter.indexOf(HOURS_IN_HALF_DAY)) {
+                            // cross through noon/midnight
+                            mIsAm = !mIsAm
+                            flag = true
+                        }
+                    } else if (dy < 0 && oldVal == 0 && newVal == minuteAdapter.itemsCount - 1) {
+                        // cross the border counterclockwise
+                        oldHourIndex = mHourSpinner.currentItem
+                        newHourIndex = (oldHourIndex + hourAdapter.itemsCount - 1) % hourAdapter.itemsCount
+                        mHourSpinner.currentItem = newHourIndex
+                        if (!mIs24Hour && oldHourIndex == hourAdapter.indexOf(HOURS_IN_HALF_DAY) && newHourIndex == hourAdapter.indexOf(HOURS_IN_HALF_DAY - 1)) {
+                            // cross through noon/midnight
+                            mIsAm = !mIsAm
+                            flag = true
+                        }
+                    }
+                    if (newHourIndex >= 0) {
+                        var date = getDate()
+                        if (date < minTime || date > maxTime) {
+                            // Sliding wheel may cause time out of range, so handle it.
+                            mMinuteSpinner.cancelFuture()
+                            date = if (dy > 0) minTime else maxTime
+                            setCurrentHour(date.first, false)
+                            setCurrentMinute(date.second)
+                            onTimeChanged(date)
+                            flag = true
+                        } else if (minuteAdapter.itemsCount == minutesSize && (date.first == minTime.first || date.first == maxTime.first)
+                            || minuteAdapter.itemsCount < minutesSize && date.first > minTime.first && date.first < maxTime.first
+                        ) {
+                            mMinuteSpinner.cancelFuture()
+                            setCurrentMinute(date.second)
+                        }
+                        if (flag) {
+                            updateAmPm()
+                        }
                     }
                 }
             }
+        }
 
         // am/pm
         mAmPmSpinner.setOnItemSelectedListener {
-            Log.d("byq","mAmPmSpinner.setOnItemSelectedListener")
+            Log.d("byq", "mAmPmSpinner.setOnItemSelectedListener")
             mIsAm = !mIsAm
-            setCurrentMinute(getMinute())
-            onTimeChanged()
+            val date = getDate()
+            setCurrentMinute(date.second)
+            onTimeChanged(date)
         }
 
         if (isAmPmAtStart()) {
@@ -188,14 +235,16 @@ class WheelStyleTimePickerViewV4 @JvmOverloads constructor(
             setCurrentHour(hour)
             setCurrentMinute(minute)
             updateAmPm()
-            onTimeChanged()
+            onTimeChanged(hour to minute)
         }
     }
 
     fun getDate() = getHour() to getMinute()
 
-    private fun setCurrentHour(hour: Int) {
-        updateHourControl()
+    private fun setCurrentHour(hour: Int, updateControl: Boolean = true) {
+        if (updateControl) {
+            updateHourControl()
+        }
         var currentHour = hour
         if (!mIs24Hour) {
             // convert [0,23] ordinal to wall clock display
@@ -211,12 +260,13 @@ class WheelStyleTimePickerViewV4 @JvmOverloads constructor(
                 }
             }
         }
+        mHourSpinner.currentItem
         mHourSpinner.currentItem = hourAdapter.indexOf(currentHour)
         Log.d("byq", "setCurrentHour $hour + ${hourAdapter.displayedValues}")
     }
 
     fun getHour(): Int {
-        val currentHour = hourAdapter.getItem(mHourSpinner.currentItem)?:-1
+        val currentHour = hourAdapter.getItem(mHourSpinner.currentItem) ?: -1
         return when {
             mIs24Hour -> {
                 currentHour
@@ -237,7 +287,7 @@ class WheelStyleTimePickerViewV4 @JvmOverloads constructor(
     }
 
     fun getMinute(): Int {
-        return minuteAdapter.getItem(mMinuteSpinner.currentItem)?:-1
+        return minuteAdapter.getItem(mMinuteSpinner.currentItem) ?: -1
     }
 
     fun set24HourMode(is24Hour: Boolean) {
@@ -316,7 +366,7 @@ class WheelStyleTimePickerViewV4 @JvmOverloads constructor(
                 newDisplayedValues = hoursValues
             }
         }
-        if (hourAdapter.itemsCount == newDisplayedValues.size && hourAdapter.getItem(0) == newDisplayedValues[0]) return
+        if (newDisplayedValues.isEmpty() || hourAdapter.itemsCount == newDisplayedValues.size && hourAdapter.getItem(0) == newDisplayedValues.firstOrNull()) return
         hourAdapter.displayedValues = newDisplayedValues
         mHourSpinner.setCyclic(hourAdapter.itemsCount >= ITEM_VISIBLE_COUNT)
         mHourSpinner.adapter = hourAdapter
@@ -328,7 +378,7 @@ class WheelStyleTimePickerViewV4 @JvmOverloads constructor(
             val time = hour to it
             time >= minTime && time <= maxTime
         }
-        if (minuteAdapter.itemsCount == newDisplayedValues.size && minuteAdapter.getItem(0) == newDisplayedValues[0]) return
+        if (newDisplayedValues.isEmpty() || minuteAdapter.itemsCount == newDisplayedValues.size && minuteAdapter.getItem(0) == newDisplayedValues.firstOrNull()) return
         minuteAdapter.displayedValues = newDisplayedValues
         mMinuteSpinner.setCyclic(minuteAdapter.itemsCount >= ITEM_VISIBLE_COUNT)
         mMinuteSpinner.adapter = minuteAdapter
@@ -358,21 +408,15 @@ class WheelStyleTimePickerViewV4 @JvmOverloads constructor(
         }
     }
 
-    private fun onTimeChanged() {
-        lastTime = getDate()
-        Log.d("byq", "onTimeChanged ${lastTime.first}:${lastTime.second}")
-        mOnTimeChangedListener?.onTimeChanged(this, lastTime.first, lastTime.second)
+    private fun onTimeChanged(date: Pair<Int, Int>) {
+        lastTime = date
+        Log.d("byq", "onTimeChanged ${date.first}:${date.second}")
+        mOnTimeChangedListener?.onTimeChanged(this, date.first, date.second)
     }
 
     // define operator to compare time values(<hour,minute>)
     private operator fun Pair<Int, Int>.compareTo(param: Pair<Int, Int>): Int {
         return first * 60 + second - param.first * 60 - param.second
-    }
-
-    private fun isClockwiseMoved(from: Pair<Int, Int>, to: Pair<Int, Int>): Boolean {
-        val divider = ((from.first + 24) * 60 + from.second - to.first * 60 - to.second) % 1440
-        val divider2 = ((to.first + 24) * 60 + to.second - from.first * 60 - from.second) % 1440
-        return divider > divider2
     }
 
     private fun getRoundDownTime(param: Pair<Int, Int>): Pair<Int, Int> {
