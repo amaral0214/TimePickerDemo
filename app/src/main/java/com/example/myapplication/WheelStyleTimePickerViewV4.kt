@@ -81,7 +81,7 @@ class WheelStyleTimePickerViewV4 @JvmOverloads constructor(
                 if (!mIs24Hour) {
                     val index1 = hourAdapter.indexOf(HOURS_IN_HALF_DAY - 1)
                     val index2 = hourAdapter.indexOf(HOURS_IN_HALF_DAY)
-                    if (dy > 0 && oldVal == index1 && newVal == index2 || dy < 0 && oldVal == index2 && oldVal == index1) {
+                    if (dy > 0 && oldVal == index1 && newVal == index2 || dy < 0 && oldVal == index2 && newVal == index1) {
                         // cross through noon/midnight
                         mIsAm = !mIsAm
                         flag = true
