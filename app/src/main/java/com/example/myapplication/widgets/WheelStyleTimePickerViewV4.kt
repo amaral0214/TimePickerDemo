@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.example.myapplication.widgets
 
 import android.content.Context
 import android.os.Parcel
@@ -10,6 +10,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.LinearLayout
 import com.contrarywind.view.WheelView
+import com.example.myapplication.adapters.CustomWheelAdapterV4
+import com.example.myapplication.R
 import kotlinx.android.synthetic.main.view_v4_wheel_style_time_picker.view.*
 import java.text.DateFormatSymbols
 import java.util.*

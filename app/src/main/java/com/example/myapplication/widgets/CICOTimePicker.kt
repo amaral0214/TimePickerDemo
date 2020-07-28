@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.example.myapplication.widgets
 
 import android.content.Context
 import android.os.Parcel
@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.NumberPicker
+import com.example.myapplication.R
 import kotlinx.android.synthetic.main.view_v4_cico_time_picker.view.*
 import java.util.*
 

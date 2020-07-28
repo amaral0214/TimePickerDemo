@@ -8,17 +8,17 @@
     android:orientation="horizontal">
 
     <!-- day -->
-    <com.example.myapplication.CustomWheelViewV4
+    <com.example.myapplication.widgets.CustomWheelViewV4
         android:id="@+id/mDaySpinner"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="3"
+        android:layout_weight="2"
         android:descendantFocusability="blocksDescendants"
         android:focusable="true"
         android:focusableInTouchMode="true" />
 
     <!-- hour -->
-    <com.example.myapplication.CustomWheelViewV4
+    <com.example.myapplication.widgets.CustomWheelViewV4
         android:id="@+id/mHourSpinner"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -28,7 +28,7 @@
         android:focusableInTouchMode="true" />
 
     <!-- minute -->
-    <com.example.myapplication.CustomWheelViewV4
+    <com.example.myapplication.widgets.CustomWheelViewV4
         android:id="@+id/mMinuteSpinner"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -38,7 +38,7 @@
         android:focusableInTouchMode="true" />
 
     <!-- AM / PM -->
-    <com.example.myapplication.CustomWheelViewV4
+    <com.example.myapplication.widgets.CustomWheelViewV4
         android:id="@+id/mAmPmSpinner"
         android:layout_width="0dp"
         android:layout_height="wrap_content"

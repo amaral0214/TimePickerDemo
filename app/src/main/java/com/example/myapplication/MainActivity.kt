@@ -1,36 +1,75 @@
 package com.example.myapplication
 
-import android.content.Context
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.text.Html
-import android.text.method.LinkMovementMethod
-import android.util.AttributeSet
-import android.view.View
-import kotlinx.android.synthetic.main.activity_main.*
-import java.util.*
+import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.add
+import androidx.fragment.app.commit
+import androidx.fragment.app.replace
+import com.example.myapplication.fragments.ScrollingFragment
+import com.example.myapplication.fragments.SpinnerFragment
+import com.example.myapplication.fragments.TextFragment
+import com.example.myapplication.fragments.TimePickerFragment
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), OnFragmentInteractionListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        Locale.setDefault(Locale.JAPANESE)
-//        textView.movementMethod = LinkMovementMethod.getInstance()
 
-//        val str = "<ul>\r\n<li>One-night stay in a guestroom</li>\r\n<li>Breakfast and dinner buffet for two adults (complimentary for two children younger than 12 years old)</li>\r\n<li>Complimentary access to the Gymboree World and the Nintendo Play Zone</li>\r\n<li>Gymboree Magformers Class (subject to additional charges )</li>\r\n<li>Complimentary access to the swimming pools (including the children’s pool), sauna and fitness center</li>\r\n</ul>\r\n"
-//        textView.text = Html.fromHtml(str).trim()
+        addFragment(SpinnerFragment(), null, false)
+    }
 
-        timePicker.mIs24Hour=false
+    inline fun <reified F : Fragment> replaceFragmentBKTX(tag: String?, addToBackStack: Boolean, args: Bundle?) {
+        supportFragmentManager.commit {
+            replace<F>(R.id.frameLayout, tag, args)
+            if (addToBackStack) {
+                addToBackStack(tag)
+            }
+        }
+    }
 
+    inline fun <reified F : Fragment> addFragmentBKTX(tag: String?, addToBackStack: Boolean, args: Bundle?) {
+        supportFragmentManager.commit {
+            add<F>(R.id.frameLayout, tag, args)
+            if (addToBackStack) {
+                addToBackStack(tag)
+            }
+        }
+    }
 
-//        numberPicker.minValue = 0
-//        numberPicker.maxValue = 30
-//        numberPicker.displayedValues = arrayOf("00","15","30","45","60")
+    fun replaceFragment(fragment: Fragment, tag: String?, addToBackStack: Boolean) {
+        supportFragmentManager.beginTransaction().apply {
+            replace(R.id.frameLayout, fragment, tag)
+            if (addToBackStack) {
+                addToBackStack(tag)
+            }
+            commit()
+        }
+    }
 
-        wheelStyleTimePicker.initView(14 to 30, 16 to 0, 3 to 30)
+    fun addFragment(fragment: Fragment, tag: String?, addToBackStack: Boolean) {
+        supportFragmentManager.beginTransaction().apply {
+            add(R.id.frameLayout, fragment, tag)
+            if (addToBackStack) {
+                addToBackStack(tag)
+            }
+            commit()
+        }
+    }
 
-        picker.setMax(20)
-        picker.setMin(1)
+    override fun onFragmentInteraction(bundle: Bundle) {
+        when (bundle[TARGET_FRAGMENT_NAME]) {
+            TextFragment::class.qualifiedName -> TextFragment()
+            TimePickerFragment::class.qualifiedName -> TimePickerFragment()
+            SpinnerFragment::class.qualifiedName -> SpinnerFragment()
+            else -> null
+        }?.let {
+            replaceFragment(it, null, true)
+        }
+    }
+
+    companion object {
+        const val TARGET_FRAGMENT_NAME = "TARGET_FRAGMENT_NAME"
     }
 }
